@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/tcp.h>
+#include <cstring>
 
 class HostAddress
 {
@@ -38,18 +39,18 @@ public:
         IOError = -2
     };
 
-    Socket(socket_t sock = -1);
-    Socket(void);
+    Socket(int sock = -1);
+    ~Socket(void);
 
-    static Socket createSocket(void);
+    static Socket CreateSocket(void);
 
-    socket_t getSocket(void) const { return m_socket; }
+    int getSocket(void) const { return m_socket; }
 
     bool bind(const HostAddress& addr);
     bool listen(int backlog);
 
-    int option(int level, int name, char* val, socketlen_t* vallen);
-    int setOption(int level, int name, char* val, socketlen_t vallen);
+    int option(int level, int name, char* val, socklen_t* vallen);
+    int setOption(int level, int name, char* val, socklen_t vallen);
 
     bool setNonBlocking(void);
     bool setReuseaddr(void);
@@ -80,10 +81,10 @@ public:
     void close(void);
     bool isNull(void) const;
 
-    static void close(socket_t sock);
+    static void close(int sock);
 
 private:
-    socket_t m_socket;
+    int m_socket;
 };
 
 

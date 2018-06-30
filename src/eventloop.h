@@ -6,6 +6,8 @@
 #include <event2/event_compat.h>
 
 
+//前置声明
+class EventLoop;
 class Event
 {
 public:

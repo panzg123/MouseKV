@@ -39,10 +39,10 @@ private:
     void appendChunk(int nums);
 
 private:
-    int m_capacity;
-    int m_offset;
-    char m_data[ChunkSize];
-    char* m_ptr;
+    int m_capacity;             //容量
+    int m_offset;               //偏移
+    char m_data[ChunkSize];     //buf
+    char* m_ptr;                //头部指针
 };
 
 

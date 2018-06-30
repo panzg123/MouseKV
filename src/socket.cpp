@@ -1,4 +1,4 @@
-
+#include "socket.h"
 
 HostAddress::HostAddress(int port)
 {
@@ -37,7 +37,7 @@ int HostAddress::port(void) const
 }
 
 
-Socket::Socket(socket_t sock)
+Socket::Socket(int sock)
 {
     m_socket = sock;
 }
@@ -48,13 +48,13 @@ Socket::~Socket(void)
 
 Socket Socket::CreateSocket(void)
 {
-    socket_t sock = ::socket(AF_INET,SOCK_STREAM,0);
+    int sock = ::socket(AF_INET,SOCK_STREAM,0);
 	return Socket(sock);
 }
 
 bool Socket::bind(const HostAddress & addr)
 {
-    if(::bind(m_socket,(sockaddr_in*)addr._sockaddr,sizeof(sockaddr_in)) != 0)
+    if(::bind(m_socket,(sockaddr*)addr._sockaddr(),sizeof(sockaddr_in)) != 0)
 		return false;
 	return true;
 }
@@ -67,12 +67,12 @@ bool Socket::listen(int backlog)
     return true; 
 }
 
-int Socket::option(int level, int name, char *val, socketlen_t* vallen)
+int Socket::option(int level, int name, char *val, socklen_t* vallen)
 {
     return ::getsockopt(m_socket, level, name, val, vallen);
 }
 
-int Socket::setOption(int level, int name, char *val, socketlen_t vallen)
+int Socket::setOption(int level, int name, char *val, socklen_t vallen)
 {
     return ::setsockopt(m_socket, level, name, val, vallen);
 }
@@ -92,7 +92,7 @@ bool Socket::setNonBlocking(void)
 bool Socket::setReuseaddr(void)
 {
     int reuse;
-    socketlen_t len;
+    socklen_t len;
 
     reuse = 1;
     len = sizeof(reuse);
@@ -103,7 +103,7 @@ bool Socket::setReuseaddr(void)
 bool Socket::setNoDelay(void)
 {
     int nodelay;
-    socketlen_t len;
+    socklen_t len;
 
     nodelay = 1;
     len = sizeof(nodelay);
@@ -119,14 +119,14 @@ bool Socket::setKeepAlive(void)
 
 bool Socket::setSendBufferSize(int size)
 {
-    socketlen_t len;
+    socklen_t len;
     len = sizeof(size);
     return (setOption(SOL_SOCKET, SO_SNDBUF, (char*)&size, len) == 0);
 }
 
 bool Socket::setRecvBufferSize(int size)
 {
-    socketlen_t len;
+    socklen_t len;
     len = sizeof(size);
     return (setOption(SOL_SOCKET, SO_RCVBUF, (char*)&size, len) == 0);
 }
@@ -152,7 +152,7 @@ bool Socket::setRecvTimeout(int msec)
 int Socket::sendBufferSize(void)
 {
     int status, size;
-    socketlen_t len;
+    socklen_t len;
 
     size = 0;
     len = sizeof(size);
@@ -168,7 +168,7 @@ int Socket::sendBufferSize(void)
 int Socket::recvBufferSize(void)
 {
     int status, size;
-    socketlen_t len;
+    socklen_t len;
 
     size = 0;
     len = sizeof(size);
@@ -229,7 +229,7 @@ int Socket::nonblocking_recv(char *buff, int size, int flag)
 void Socket::close(void)
 {
     if (m_socket != -1) {
-        TcpSocket::close(m_socket);
+        Socket::close(m_socket);
         m_socket = -1;
     }
 }
@@ -239,7 +239,7 @@ bool Socket::isNull(void) const
     return (m_socket < 0);
 }
 
-void Socket::close(socket_t sock)
+void Socket::close(int sock)
 {
     ::close(sock);
 }

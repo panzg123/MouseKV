@@ -4,6 +4,7 @@
 #include "iobuffer.h"
 #include "eventloop.h"
 #include "socket.h"
+#include <string>
 
 class Server;
 class Context
@@ -21,9 +22,9 @@ public:
     Socket clientSocket;     //Client socket
     HostAddress clientAddress;  //Client address
     Server* server;          //The Connected server
-    IOBuffer sendBuff;          //Send buffer
+    IOBuffer sendBuff;          //发送buf
     IOBuffer recvBuff;          //Recv buffer
-    int sendBytes;              //Current send bytes
+    int sendBytes;              //目前已发送的偏移
     int recvBytes;              //Current recv bytes
     EventLoop* eventLoop;       //Use the event loop
     Event _event;               //Read/Write event
@@ -40,25 +41,25 @@ public:
     };
 
     Server(void);
-    virtual Server(void);
+    virtual ~Server(void);
     EventLoop* getEventLoop(void) { return &m_loop; }
-    const HostAddress& address(void) const { return m_addr; }
-    bool run(const HostAddress& addr);
-    bool isRunning(void) const;
-    void stop(void);
+    const HostAddress& getAddress(void) const { return m_addr; }
+    bool run(const HostAddress& addr);                                 //启动运行
+    bool isRunning(void) const;                                        //是否在运行
+    void stop(void);                                                   //停止运行
 
-    virtual Context* createContextObject(void);
-    virtual void destroyContextObject(Context* c);
-    virtual void closeConnection(Context* c);
-    virtual void clientConnected(Context* c);
-    virtual void waitRequest(Context* c);
-    virtual ReadStatus readingRequest(Context* c);
-    virtual void readRequestFinished(Context* c);
-    virtual void writeReply(Context* c);
-    virtual void writeReplyFinished(Context* c);
+    virtual Context* createContextObject(void);                        //创建一个新的连接对象
+    virtual void destroyContextObject(Context* c);                     //销毁一个连接
+    virtual void closeConnection(Context* c);                          //关闭一个连接
+    virtual void clientConnected(Context* c);                          //连接建立后的一些操作，如统计
+    virtual void waitRequest(Context* c);                              //等待请求
+    virtual ReadStatus readingRequest(Context* c);                     //读取请求数据
+    virtual void readRequestFinished(Context* c);                      //读取请求数据完毕，接下来可以处理请求了
+    virtual void writeReply(Context* c);                               //写响应包
+    virtual void writeReplyFinished(Context* c);                       //写响应包结束，做一些操作，如统计
 
 protected:
-    static void onAcceptHandler(evutil_socket_t sock, short, void* arg);
+    static void onAcceptHandler(evutil_socket_t sock, short, void* arg);  //监听套接字回调函数
 
 private:
     HostAddress m_addr;
