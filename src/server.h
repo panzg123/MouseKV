@@ -5,6 +5,8 @@
 #include "eventloop.h"
 #include "socket.h"
 #include <string>
+#include <vector>
+using namespace std;
 
 class Server;
 class Context
@@ -28,6 +30,8 @@ public:
     int recvBytes;              //Current recv bytes
     EventLoop* eventLoop;       //Use the event loop
     Event _event;               //Read/Write event
+
+    vector<string> vec_req_params; //存下解析后的参数
 };
 
 

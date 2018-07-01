@@ -6,7 +6,8 @@ void onReadClientHandler(int, short, void* arg)
     IOBuffer* buf = &c->recvBuff;
     IOBuffer::DirectCopy cp = buf->beginCopy();
     int ret = c->clientSocket.nonblocking_recv(cp.address, cp.maxsize);
-    switch (ret) {
+    switch (ret)
+    {
     case Socket::IOAgain:
         c->server->waitRequest(c);
         break;
@@ -21,7 +22,7 @@ void onReadClientHandler(int, short, void* arg)
         case Server::ReadFinished:
             c->server->readRequestFinished(c);
             break;
-        case Server::ReadIncomplete:
+        case Server::ReadIncomplete:             //请求包不完整，继续读取
             c->server->waitRequest(c);
             break;
         case Server::ReadError:
@@ -189,7 +190,7 @@ void Server::clientConnected(Context *c)
 
 void Server::waitRequest(Context *c)
 {
-    c->_event.set(c->eventLoop,c->clientSocket.getSocket(),EV_READ | EV_PERSIST,onReadClientHandler,c);
+    c->_event.set(c->eventLoop,c->clientSocket.getSocket(),EV_READ,onReadClientHandler,c);
     c->_event.active();
 }
 
