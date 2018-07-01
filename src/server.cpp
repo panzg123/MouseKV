@@ -16,7 +16,8 @@ void onReadClientHandler(int, short, void* arg)
     default:
         buf->endCopy(ret);
         c->recvBytes += ret;
-        switch (c->server->readingRequest(c)) {
+        switch (c->server->readingRequest(c))
+        {
         case Server::ReadFinished:
             c->server->readRequestFinished(c);
             break;
@@ -40,7 +41,8 @@ void onWriteClientHandler(int, short, void* arg)
 	int size = c->sendBuff.size() - c->sendBytes;
 	int ret = c->clientSocket.nonblocking_send(data,size);
 
-	switch (ret){
+	switch (ret)
+    {
 		case Socket::IOAgain:
 			c->_event.set(c->eventLoop, c->clientSocket.getSocket(), EV_WRITE, onWriteClientHandler, c);
 			c->_event.active();
@@ -200,15 +202,7 @@ Server::ReadStatus Server::readingRequest(Context *c)
 //读取请求包结束，执行一些业务逻辑，由派生类重写
 void Server::readRequestFinished(Context *c)
 {
-    //这里做测试，把先请求包打印一下
-    std::string str;
-    str.assign(c->recvBuff.data(),c->recvBytes);
-    //fprintf(stderr,"req:%s\n",str.c_str());
-    fprintf(stderr,"req:%s\n",c->recvBuff.data());
-    //测试做个echo
-    c->sendBuff = c->recvBuff;
-    c->sendBytes = 0;
-    writeReply(c);
+
 }
 
 //直接把context中的数据写出去
@@ -220,6 +214,5 @@ void Server::writeReply(Context *c)
 //回包结束，可以做一些统计或者激活下一次可读事件，由派生类做具体逻辑
 void Server::writeReplyFinished(Context *c)
 {
-    c->recvBuff.clear();
-    c->sendBuff.clear();
+
 }
