@@ -12,6 +12,17 @@ class Server;
 class Context
 {
 public:
+
+	enum State 
+	{
+		Unknown = 0,
+		ProtoError = 1,
+		ProtoNotSupport = 2,
+	   	WrongNumberOfArguments = 3,
+	   	RequestError = 4,
+	   	RequestFinished = 5
+	};
+		
     Context(void) {
         server = NULL;
         sendBytes = 0;
@@ -20,7 +31,10 @@ public:
     }
 
     virtual ~Context(void) {}
+	void setFinishedState(Context::State state);
 
+
+	//成员变量
     Socket clientSocket;     //Client socket
     HostAddress clientAddress;  //Client address
     Server* server;          //The Connected server

@@ -6,6 +6,7 @@
 #define MOUSEKV_MOUSE_H
 
 #include "server.h"
+#include "cmd.h"
 
 enum ErrCode
 {
@@ -16,6 +17,7 @@ enum ErrCode
 class Mouse: public Server
 {
 public:
+
     //重写虚函数
     Context* createContextObject(void);
     void destroyContextObject(Context* c);
@@ -25,6 +27,7 @@ public:
     void readRequestFinished(Context* c);
     void writeReply(Context* c);
     void writeReplyFinished(Context* c);
+	bool run(const HostAddress &addr);
 
 private:
     //默认端口
@@ -32,6 +35,9 @@ private:
 
     //从buf中读取整数
     int readNumber(char *buf, int len, int& num);
+	//命令表
+	CmdTable *cmd_table;
+	
 };
 
 #endif //MOUSEKV_MOUSE_H

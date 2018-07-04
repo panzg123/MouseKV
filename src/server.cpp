@@ -67,7 +67,7 @@ void onWriteClientHandler(int, short, void* arg)
 //监听套接字回调函数
 void Server::onAcceptHandler(evutil_socket_t sock, short, void * arg)
 {
-    fprintf(stderr,"onAcceptHandler begin");
+    fprintf(stderr,"onAcceptHandler begin\n");
     sockaddr_in clientAddr;
 	socklen_t len = sizeof(sockaddr_in);
 	int client_sock = accept(sock,(sockaddr*)&clientAddr, &len);
@@ -94,8 +94,37 @@ void Server::onAcceptHandler(evutil_socket_t sock, short, void * arg)
     } else {
         _sock.close();
     }
-    fprintf(stderr,"onAcceptHandler end");
+    fprintf(stderr,"onAcceptHandler end\n");
 }
+
+
+void Context::setFinishedState(Context::State state)
+{
+    switch (state) {
+    case Context::Unknown:
+        sendBuff.append("-Unknown state\r\n");
+        break;
+    case Context::ProtoError:
+        sendBuff.append("-Proto error\r\n");
+        break;
+    case Context::ProtoNotSupport:
+        sendBuff.append("-Proto not support\r\n");
+        break;
+    case Context::WrongNumberOfArguments:
+        sendBuff.append("-Wrong number of arguments\r\n");
+        break;
+    case Context::RequestError:
+        sendBuff.append("-Request error\r\n");
+        break;
+    case Context::RequestFinished:
+        break;
+    default:
+        break;
+    }
+    server->writeReply(this);
+}
+
+
 
 Server::Server() {}
 
