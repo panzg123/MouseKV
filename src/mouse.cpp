@@ -154,7 +154,13 @@ bool Mouse::run(const HostAddress &addr)
     }
 	//初始化命令表
 	cmd_table = CmdTable::instance();
-
+    //初始化leveldbCluster
+    db_cluster = LevelDbCluster::instance();
 	//启动server
 	return Server::run(addr);
+}
+
+LevelDbCluster* Mouse::getDbCluster()
+{
+    return db_cluster;
 }

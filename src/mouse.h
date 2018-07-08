@@ -7,10 +7,18 @@
 
 #include "server.h"
 #include "cmd.h"
+#include "leveldb.h"
 
 enum ErrCode
 {
     err_parse_num_from_buf = -10000,
+};
+
+
+
+class ClientPacket : public Context
+{
+
 };
 
 
@@ -28,6 +36,7 @@ public:
     void writeReply(Context* c);
     void writeReplyFinished(Context* c);
 	bool run(const HostAddress &addr);
+	LevelDbCluster* getDbCluster();
 
 private:
     //默认端口
@@ -37,7 +46,8 @@ private:
     int readNumber(char *buf, int len, int& num);
 	//命令表
 	CmdTable *cmd_table;
-	
+	//levelDb表
+    LevelDbCluster *db_cluster;
 };
 
 #endif //MOUSEKV_MOUSE_H

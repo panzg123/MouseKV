@@ -1,5 +1,7 @@
 # MouseKV
 oh, something cool.
 
-###TODO
-### NET
+### TODO
+- [ ] Log
+- [ ] levelDb
+- [ ] master-slave

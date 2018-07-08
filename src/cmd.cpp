@@ -1,8 +1,11 @@
 #include "cmd.h"
+#include "mouse.h"
 #include <sstream>
 #include <string>
 using namespace std;
 
+
+class Mouse;
 
 //下面定义GET/SET的处理函数
 void MouseGetCmdHandler(Context* c)
@@ -12,11 +15,18 @@ void MouseGetCmdHandler(Context* c)
 	    c->setFinishedState(Context::WrongNumberOfArguments);
 		return;
 	}
-	string send_str = "echo_" + c->vec_req_params[1];
-	c->sendBuff.appendFormatString("$%d\r\n", send_str.size());
-	c->sendBuff.append(send_str.data(),send_str.size());
-	c->sendBuff.append("\r\n");
-	c->setFinishedState(Context::RequestFinished);
+    //处理逻辑
+    Mouse *_mouse_server = (Mouse*)c->server;
+	string value;
+	bool get_ret = _mouse_server->getDbCluster()->getValue(c->vec_req_params[1],value);
+	if(get_ret)
+    {
+        c->sendBuff.appendFormatString("$%d\r\n", value.size());
+        c->sendBuff.append(value.data(),value.size());
+        c->sendBuff.append("\r\n");
+        c->setFinishedState(Context::RequestFinished);
+    } else
+        c->setFinishedState(Context::RequestError);
 }
 
 
@@ -29,8 +39,15 @@ void MouseSetCmdHandler(Context *c)
 	}
 	//先简单打印一下kv，然后回包ok
 	fprintf(stderr,"key[%s],value[%s]\n",c->vec_req_params[1].c_str(), c->vec_req_params[2].c_str());
-	c->sendBuff.append("+OK\r\n");
-	c->setFinishedState(Context::RequestFinished);
+	//处理逻辑
+    Mouse *_mouse_server = (Mouse*)c->server;
+    bool set_ret = _mouse_server->getDbCluster()->setValue(c->vec_req_params[1],c->vec_req_params[2]);
+	if(set_ret)
+    {
+        c->sendBuff.append("+OK\r\n");
+        c->setFinishedState(Context::RequestFinished);
+    } else
+        c->setFinishedState(Context::RequestError);
 }
 
 
@@ -57,7 +74,6 @@ bool CmdTable::GetCmdHandler(const string & cmd, CmdHandler& handler)
 
 CmdTable* CmdTable::instance(void)
 {
-	//不是线程安全的，MouseKV单线程
 	static CmdTable* table = NULL;
 	if (!table) 
 	{
