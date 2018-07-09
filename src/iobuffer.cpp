@@ -90,6 +90,7 @@ void IOBuffer::clear(void)
     m_capacity = sizeof(m_data);
     m_offset = 0;
     m_ptr = m_data;
+	memset(m_data,0,m_capacity);
 }
 
 IOBuffer::DirectCopy IOBuffer::beginCopy(void)

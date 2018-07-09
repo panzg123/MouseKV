@@ -36,7 +36,7 @@ void onReadClientHandler(int, short, void* arg)
 
 void onWriteClientHandler(int, short, void* arg)
 {
-    fprintf(stderr,"onWriteClientHandler begin\n");
+    COMM_LOG(Logger::DEBUG,"onWriteClientHandler begin\n");
     Context* c = (Context*)arg;
 	char* data = c->sendBuff.data() + c->sendBytes;
 	int size = c->sendBuff.size() - c->sendBytes;
@@ -50,7 +50,7 @@ void onWriteClientHandler(int, short, void* arg)
 			break;
 		case Socket::IOError:
         {
-            fprintf(stderr,"onWriteClientHandler, IOError, ret=%d\n",ret);
+            COMM_LOG(Logger::ERROR,"onWriteClientHandler, IOError, ret=%d\n",ret);
             c->server->closeConnection(c);
             break;
         }
@@ -67,7 +67,7 @@ void onWriteClientHandler(int, short, void* arg)
 //监听套接字回调函数
 void Server::onAcceptHandler(evutil_socket_t sock, short, void * arg)
 {
-    fprintf(stderr,"onAcceptHandler begin\n");
+    COMM_LOG(Logger::DEBUG,"onAcceptHandler begin\n");
     sockaddr_in clientAddr;
 	socklen_t len = sizeof(sockaddr_in);
 	int client_sock = accept(sock,(sockaddr*)&clientAddr, &len);
@@ -94,7 +94,7 @@ void Server::onAcceptHandler(evutil_socket_t sock, short, void * arg)
     } else {
         _sock.close();
     }
-    fprintf(stderr,"onAcceptHandler end\n");
+    COMM_LOG(Logger::DEBUG,"onAcceptHandler end\n");
 }
 
 
@@ -138,13 +138,13 @@ bool Server::run(const HostAddress &addr)
     //1.socket
     if(isRunning())
     {
-        fprintf(stderr,"Server is already run!\n");
+   		COMM_LOG(Logger::ERROR,"Server is already run!\n");
         return false;
     }
     Socket sock = Socket::CreateSocket();
     if(sock.isNull())
     {
-        fprintf(stderr,"Server Run, create sock error\n");
+        COMM_LOG(Logger::ERROR,"Server Run, create sock error\n");
         return false;
     }
     //2.bind
@@ -153,14 +153,14 @@ bool Server::run(const HostAddress &addr)
     sock.setNonBlocking();
     if(!sock.bind(addr))
     {
-        fprintf(stderr,"Server Run, bind sock error\n");
+        COMM_LOG(Logger::ERROR,"Server Run, bind sock error\n");
         sock.close();
         return false;
     }
     //3.listen
     if(!sock.listen(128))
     {
-        fprintf(stderr,"Server Run, sock listen error\n");
+        COMM_LOG(Logger::ERROR,"Server Run, sock listen error\n");
         sock.close();
         return false;
     }
@@ -171,7 +171,7 @@ bool Server::run(const HostAddress &addr)
     m_addr = addr;
     //5.启动循环
     m_loop.exec();
-    fprintf(stderr,"Server Run, success\n");
+    COMM_LOG(Logger::ERROR,"Server Run, success\n");
     return true;
 }
 
@@ -189,7 +189,7 @@ void Server::stop()
         m_listener.remove();
         m_socket.close();
         m_loop.exit();
-        fprintf(stderr,"Server stop success\n");
+        COMM_LOG(Logger::ERROR,"Server stop success\n");
     }
 }
 

@@ -8,6 +8,7 @@
 #include "server.h"
 #include "cmd.h"
 #include "leveldb.h"
+#include "log.h"
 
 enum ErrCode
 {

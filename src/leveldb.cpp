@@ -76,7 +76,7 @@ bool LevelDbCluster::InitCluster()
         db->InitDb(oss.str());
         if(!db->openDb())
         {
-            fprintf(stderr,"InitCluster error, open failed\n");
+            COMM_LOG(Logger::ERROR,"InitCluster error, open failed\n");
             return false;
         }
         m_vec_dbs.push_back(db);

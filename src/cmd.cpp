@@ -38,7 +38,7 @@ void MouseSetCmdHandler(Context *c)
 		return;
 	}
 	//先简单打印一下kv，然后回包ok
-	fprintf(stderr,"key[%s],value[%s]\n",c->vec_req_params[1].c_str(), c->vec_req_params[2].c_str());
+	COMM_LOG(Logger::DEBUG,"key[%s],value[%s]\n",c->vec_req_params[1].c_str(), c->vec_req_params[2].c_str());
 	//处理逻辑
     Mouse *_mouse_server = (Mouse*)c->server;
     bool set_ret = _mouse_server->getDbCluster()->setValue(c->vec_req_params[1],c->vec_req_params[2]);
@@ -55,14 +55,14 @@ void MouseSetCmdHandler(Context *c)
 //下面是CmdTable的实现
 bool CmdTable::AddCmd(string cmd, CmdHandler handler)
 {
-    fprintf(stderr,"AddCmd, cmd[%s]\n",cmd.c_str());
+    COMM_LOG(Logger::ERROR,"AddCmd, cmd[%s]\n",cmd.c_str());
 	m_map_cmd_handler[cmd] = handler;
 }
 
 
 bool CmdTable::GetCmdHandler(const string & cmd, CmdHandler& handler)
 {
-	fprintf(stderr,"GetCmdHandler, cmd[%s]\n",cmd.c_str());
+	COMM_LOG(Logger::DEBUG,"GetCmdHandler, cmd[%s]\n",cmd.c_str());
     if(m_map_cmd_handler.count(cmd))
     {
     	handler = m_map_cmd_handler[cmd];

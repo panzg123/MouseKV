@@ -9,6 +9,7 @@
 #include <string>
 #include <leveldb/db.h>
 #include <leveldb/options.h>
+#include "log.h"
 using namespace std;
 
 class LevelDb

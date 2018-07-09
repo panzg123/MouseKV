@@ -6,6 +6,7 @@
 #include "socket.h"
 #include <string>
 #include <vector>
+#include "log.h"
 using namespace std;
 
 class Server;
