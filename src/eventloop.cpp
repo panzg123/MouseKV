@@ -54,7 +54,7 @@ void EventLoop::exec(void)
 {
     if (m_event_loop) {
         if (event_base_dispatch(m_event_loop) < 0) {
-            printf("EventLoop::exec: event_base_dispatch() failed");
+            fprintf(stderr,"EventLoop::exec: event_base_dispatch() failed");
         }
     }
 }
@@ -70,7 +70,71 @@ void EventLoop::exit(int timeout)
             p = &val;
         }
         if (event_base_loopexit(m_event_loop, p) < 0) {
-            printf("EventLoop::exit: event_base_loopexit() failed");
+            fprintf(stderr,"EventLoop::exit: event_base_loopexit() failed");
         }
+    }
+}
+
+
+//=========================================================线程========================================================
+void EventLoopThread::start(void)
+{
+    pthread_create(&m_thread_id,NULL,run, this);
+}
+
+void emptyCallBack(evutil_socket_t, short, void*)
+{
+}
+
+void EventLoopThread::terminate(void)
+{
+    m_timeout.remove();
+    m_event_loop.exit();
+}
+
+void* EventLoopThread::run(void* arg)
+{
+    EventLoopThread* thread = (EventLoopThread*)arg;
+    thread->m_timeout.set(&thread->m_event_loop, -1, EV_PERSIST | EV_TIMEOUT, emptyCallBack, thread);
+    thread->m_timeout.active(60000);
+    thread->m_event_loop.exec();
+    thread->m_is_running = true;
+    return NULL;
+};
+
+//===========================================================线程池=====================================================
+
+bool EventLoopThreadPool::initThreadPool()
+{
+    fprintf(stderr,"EventLoopThreadPool::initThreadPool begin");
+    for (int i = 0; i < m_default_thread_num; ++i)
+    {
+        EventLoopThread *thread = new EventLoopThread;
+        thread->start();
+        m_threads.push_back(thread);
+    }
+    return true;
+}
+
+
+EventLoop* EventLoopThreadPool::getEventLoop()
+{
+    int index = m_cur_thread_ref%m_default_thread_num;
+    ++m_cur_thread_ref;
+    return &m_threads[index]->m_event_loop;
+}
+
+EventLoopThreadPool* EventLoopThreadPool::instance()
+{
+    static EventLoopThreadPool pool;
+    return &pool;
+}
+
+EventLoopThreadPool::~EventLoopThreadPool()
+{
+    for (int i = 0; i < m_default_thread_num; ++i)
+    {
+        m_threads[i]->terminate();
+        delete m_threads[i];
     }
 }

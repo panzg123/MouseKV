@@ -1,6 +1,8 @@
 # MouseKV
 oh, something cool.
 
+base from [OneValue](https://github.com/onexsoft/OneValue)
+
 ### TODO
 - [x] Log
 - [x] levelDb
@@ -10,7 +12,7 @@ oh, something cool.
 
 
 ### ChangeLog
-20180714 单线程done，默认配置8个leveldb。
+20180714 Tag1.0 单线程done，默认配置8个leveldb。
 
 BenchMark
 

@@ -10,7 +10,10 @@ using namespace std;
 
 Context* Mouse::createContextObject()
 {
-    return Server::createContextObject();
+    Context* context = new Context;
+    context->eventLoop = thread_pool->getEventLoop();
+    return context;
+    //return Server::createContextObject();
 }
 
 void Mouse::destroyContextObject(Context *c)
@@ -152,6 +155,10 @@ bool Mouse::run(const HostAddress &addr)
 	cmd_table = CmdTable::instance();
     //初始化leveldbCluster
     db_cluster = LevelDbCluster::instance();
+    //初始化线程池
+    thread_pool = EventLoopThreadPool::instance();
+    bool ret = thread_pool->initThreadPool();
+    assert(ret);
 	//启动server
 	return Server::run(addr);
 }

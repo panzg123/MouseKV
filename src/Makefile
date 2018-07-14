@@ -9,7 +9,7 @@ LIBS     = $(SUBLIBS)
 LIBS    += -lrt -pthread
 LIBS 	+= /usr/local/lib/libevent.a
 LIBS    += /usr/local/lib/libleveldb.a
-
+LIBS    += /usr/local/lib/libevent_pthreads.a
 
 ####### Files
 

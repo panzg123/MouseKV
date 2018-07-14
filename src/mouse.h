@@ -49,6 +49,8 @@ private:
 	CmdTable *cmd_table;
 	//levelDb表
     LevelDbCluster *db_cluster;
+    //线程池
+    EventLoopThreadPool *thread_pool;
 };
 
 #endif //MOUSEKV_MOUSE_H
