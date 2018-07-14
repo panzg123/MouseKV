@@ -19,6 +19,7 @@ public:
     ~LevelDb(void);
     bool setValue(const string& key,const string& value);
     bool getValue(const string& key,string& value);
+    bool delKey(const string& key);
     void InitDb(const string& db_name);
     bool openDb();
 
@@ -36,6 +37,7 @@ public:
     LevelDb* getLevelDbByKey(const string& key);
     bool setValue(const string& key,const string& value);
     bool getValue(const string& key,string& value);
+    bool delKey(const string& key);
     bool InitCluster();
     static LevelDbCluster* instance(void);
 

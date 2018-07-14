@@ -51,6 +51,14 @@ bool LevelDb::getValue(const string &key, string &value)
     return status.ok();
 }
 
+bool LevelDb::delKey(const string& key)
+{
+    leveldb::Slice _key(key.data(), key.size());
+    leveldb::WriteOptions options;
+    leveldb::Status status = m_db->Delete(options, _key);
+    return status.ok();
+}
+
 
 //-------------------------------------------------leveldbCluster-------------------------------------------------------
 LevelDbCluster::LevelDbCluster()
@@ -111,6 +119,14 @@ bool LevelDbCluster::getValue(const string &key, string &value)
     if(db == NULL)
         return false;
     return db->getValue(key,value);
+}
+
+bool LevelDbCluster::delKey(const string &key)
+{
+    LevelDb *db = getLevelDbByKey(key);
+    if(db == NULL)
+        return false;
+    return db->delKey(key);
 }
 
 LevelDbCluster* LevelDbCluster::instance(void)

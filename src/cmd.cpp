@@ -7,6 +7,16 @@ using namespace std;
 
 class Mouse;
 
+//装换为大写
+void strToUpper(string& str)
+{
+    for (size_t i = 0; i < str.size(); ++i)
+    {
+        str[i] = toupper(str[i]);
+    }
+}
+
+
 //下面定义GET/SET的处理函数
 void MouseGetCmdHandler(Context* c)
 {
@@ -51,6 +61,28 @@ void MouseSetCmdHandler(Context *c)
 }
 
 
+//删除操作
+void MouseDelCmdHandler(Context* c)
+{
+    if(c->vec_req_params.size() != 2)
+    {
+        c->setFinishedState(Context::WrongNumberOfArguments);
+        return;
+    }
+    //处理逻辑
+    COMM_LOG(Logger::DEBUG,"MouseDelCmdHandler, para size[%uz],  para1[%s], para2[%s]",
+        c->vec_req_params[0].c_str(),c->vec_req_params[1].c_str());
+
+    Mouse *_mouse_server = (Mouse*)c->server;
+    bool del_ret = _mouse_server->getDbCluster()->delKey(c->vec_req_params[1]);
+    if(del_ret)
+    {
+        c->sendBuff.append("+OK\r\n");
+        c->setFinishedState(Context::RequestFinished);
+    } else
+        c->setFinishedState(Context::RequestError);
+}
+
 
 //下面是CmdTable的实现
 bool CmdTable::AddCmd(string cmd, CmdHandler handler)
@@ -63,9 +95,12 @@ bool CmdTable::AddCmd(string cmd, CmdHandler handler)
 bool CmdTable::GetCmdHandler(const string & cmd, CmdHandler& handler)
 {
 	COMM_LOG(Logger::DEBUG,"GetCmdHandler, cmd[%s]\n",cmd.c_str());
-    if(m_map_cmd_handler.count(cmd))
+	//这里统一转换为大写命令字
+    string str_cmd = cmd;
+    strToUpper(str_cmd);
+    if(m_map_cmd_handler.count(str_cmd))
     {
-    	handler = m_map_cmd_handler[cmd];
+    	handler = m_map_cmd_handler[str_cmd];
 		return true;
     }
 	return false;
@@ -80,6 +115,7 @@ CmdTable* CmdTable::instance(void)
 	  table = new CmdTable;
 	  table->AddCmd("SET", MouseSetCmdHandler);
 	  table->AddCmd("GET", MouseGetCmdHandler);
+	  table->AddCmd("DEL", MouseDelCmdHandler);
 	}
 	return table;
 

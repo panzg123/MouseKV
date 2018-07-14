@@ -2,6 +2,8 @@
 oh, something cool.
 
 ### TODO
-- [ ] Log
-- [ ] levelDb
+- [x] Log
+- [x] levelDb
 - [ ] master-slave
+- [ ] restful api
+- [ ] multi work process
