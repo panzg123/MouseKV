@@ -9,6 +9,9 @@
 #include "cmd.h"
 #include "leveldb.h"
 #include "log.h"
+#include "config.h"
+
+const string config_path = "./config.xml";
 
 enum ErrCode
 {
@@ -36,7 +39,9 @@ public:
     void readRequestFinished(Context* c);
     void writeReply(Context* c);
     void writeReplyFinished(Context* c);
-	bool run(const HostAddress &addr);
+
+	//新增接口
+    bool runMouseSvr();
 	LevelDbCluster* getDbCluster();
 
 private:
@@ -51,6 +56,9 @@ private:
     LevelDbCluster *db_cluster;
     //线程池
     EventLoopThreadPool *thread_pool;
+    //配置
+    Config *config;
+
 };
 
 #endif //MOUSEKV_MOUSE_H

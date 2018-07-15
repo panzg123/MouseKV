@@ -59,8 +59,8 @@ void Logger::LogRotation()
 
 int Logger::outputLog(int level, const char *format, ...)
 {
-    //if(level < m_level)
-	//	return 0;
+    if(level < m_level)
+		return 0;
 	char buf[m_max_line_size];
 	char* cur_pos = buf;
 	//获取当前日期

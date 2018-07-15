@@ -18,7 +18,7 @@ void unit_test_server_case1()
 void unit_test_mouse_case()
 {
    Mouse _server;
-    _server.run(10086);
+    _server.runMouseSvr();
 }
 
 int main()

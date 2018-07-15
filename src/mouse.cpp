@@ -87,7 +87,6 @@ Mouse::ReadStatus Mouse::readingRequest(Context *c)
 void Mouse::readRequestFinished(Context *c)
 {
 	COMM_LOG(Logger::DEBUG,"readRequestFinished begin\n");
-    //TODO cmd 处理逻辑
     //先拿到cmd
     if(c->vec_req_params.size() < 2)
 	{
@@ -142,24 +141,31 @@ int Mouse::readNumber(char *buf, int len, int& num)
         return err_parse_num_from_buf;
 }
 
-bool Mouse::run(const HostAddress &addr)
+bool Mouse::runMouseSvr()
 {
 	if (isRunning()) 
 	{
         return false;
     }
+    //读取配置
+    config = Config::instance();
+	bool ret = config->InitConfig(config_path);
+	assert(ret);
 	//初始化log
 	Logger *logger = Logger::instance();
-	logger->InitLogger(Logger::DEBUG); //todo 可配置
+	logger->InitLogger((Logger::Level)config->m_log_level);
 	//初始化命令表
 	cmd_table = CmdTable::instance();
     //初始化leveldbCluster
     db_cluster = LevelDbCluster::instance();
+    ret = db_cluster->InitCluster(config->m_leveldb_size, config->m_leveldb_dir);
+    assert(ret);
     //初始化线程池
     thread_pool = EventLoopThreadPool::instance();
-    bool ret = thread_pool->initThreadPool();
+    ret = thread_pool->initThreadPool(config->m_thread_num);
     assert(ret);
 	//启动server
+    HostAddress addr(config->m_svr_port);
 	return Server::run(addr);
 }
 

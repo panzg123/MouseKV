@@ -1,0 +1,3 @@
+<config>
+    <svr db_num="8" thread_num="8" db_dir="./data/" port="10086" log_level="0"> </svr>
+</config>

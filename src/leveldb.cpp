@@ -73,9 +73,10 @@ LevelDbCluster::~LevelDbCluster()
     }
 }
 
-bool LevelDbCluster::InitCluster()
+bool LevelDbCluster::InitCluster(int db_num,string db_dir)
 {
-    m_work_dir = "./data/";  //TODO 后期路径可配置，而且需要检查data是否存在
+    m_level_db_size = db_num;
+    m_work_dir = db_dir;  //TODO 需要检查data是否存在
     for (int i = 0; i < m_level_db_size; ++i)
     {
         LevelDb *db = new LevelDb;
@@ -131,12 +132,6 @@ bool LevelDbCluster::delKey(const string &key)
 
 LevelDbCluster* LevelDbCluster::instance(void)
 {
-    static LevelDbCluster* cluster = NULL;
-    if(cluster == NULL)
-    {
-        cluster = new LevelDbCluster;
-        bool init_ret = cluster->InitCluster();
-        assert(init_ret);
-    }
-    return cluster;
+    static LevelDbCluster cluster;
+    return &cluster;
 }

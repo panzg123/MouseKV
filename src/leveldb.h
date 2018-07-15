@@ -31,19 +31,20 @@ private:
 
 class LevelDbCluster
 {
-public:
+
     LevelDbCluster(void);
     ~LevelDbCluster(void);
+public:
     LevelDb* getLevelDbByKey(const string& key);
     bool setValue(const string& key,const string& value);
     bool getValue(const string& key,string& value);
     bool delKey(const string& key);
-    bool InitCluster();
+    bool InitCluster(int db_num,string db_dir);
     static LevelDbCluster* instance(void);
 
 private:
     vector<LevelDb*> m_vec_dbs;
-    const int m_level_db_size = 8;
+    int m_level_db_size = 8;  //默认8个levelDb
     string m_work_dir;
 };
 
