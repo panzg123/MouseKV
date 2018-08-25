@@ -12,7 +12,7 @@ void strToUpper(string& str)
 {
     for (size_t i = 0; i < str.size(); ++i)
     {
-        str[i] = toupper(str[i]);
+        str[i] = static_cast<char>(toupper(str[i]));
     }
 }
 

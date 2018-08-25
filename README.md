@@ -8,7 +8,7 @@ base from [OneValue](https://github.com/onexsoft/OneValue)
 - [x] levelDb
 - [ ] master-slave
 - [ ] restful api
-- [ ] multi work process
+- [x] multi work process
 
 
 ### ChangeLog
