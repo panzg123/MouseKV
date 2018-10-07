@@ -6,9 +6,12 @@ base from [OneValue](https://github.com/onexsoft/OneValue)
 ### TODO
 - [x] Log
 - [x] levelDb
+- [ ] binlog
 - [ ] master-slave
 - [ ] restful api
 - [x] multi work process
+- [ ] support cas
+- [ ] support set,list,hash
 
 
 ### ChangeLog

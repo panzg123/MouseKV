@@ -130,7 +130,7 @@ bool LevelDbCluster::delKey(const string &key)
     return db->delKey(key);
 }
 
-LevelDbCluster* LevelDbCluster::instance(void)
+LevelDbCluster* LevelDbCluster::instance()
 {
     static LevelDbCluster cluster;
     return &cluster;
