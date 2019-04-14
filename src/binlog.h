@@ -7,14 +7,21 @@
 
 #include <string>
 #include <cstdio>
+#include <comm_def.h>
+#include <vector>
 
 using namespace std;
 
+//单个binLog文件类
 class BinLog
 {
     struct Header
     {
-        int handshake = 0x1ecdf00; //这是一个魔法数
+        int handshake = HandShake; //这是一个魔法数
+        bool IsHeaderValid()
+        {
+            return handshake == HandShake;
+        }
     };
 
     struct LogItem
@@ -38,10 +45,10 @@ class BinLog
     bool open(const std::string& file_name);
     std::string fileName() const { return m_fileName; }
     size_t writtenSize() const { return m_writtenSize; }
-    void sync();
-    void close();
     bool appendSetRecord(const string& key, const string& value);
     bool appendDelRecord(const string& key);
+    void sync();
+    void close();
 
 private:
     std::string m_fileName;   //当前binlog文件名
@@ -51,7 +58,43 @@ private:
     BinLog& operator=(const BinLog&);
 };
 
+//binLog日志列表
+class BinlogFileList
+{
+public:
+    BinlogFileList(){}
+    ~BinlogFileList(){}
 
+    void appendNewBinlogFile(const string& file_name)
+    {
+        m_binlogFileList.push_back(file_name);
+    }
+    bool isEmpty()
+    {
+        return m_binlogFileList.empty();
+    }
+    int fileCount()
+    {
+        return m_binlogFileList.size();
+    }
+    string fileName(int index) const
+    {
+        return m_binlogFileList[index];
+    }
+    int indexOfFileName(const string& fileName) const;
 
+    static void loadBinlogListFromIndex();
+    static void saveBinlogListToIndex();
+
+    //todo 还需要个生成binlog新文件的函数
+
+    //todo 也可以把调整log文件等功能在此实现，不需要再levelCluster中判断
+
+private:
+    vector<string> m_binlogFileList;   //所有binlog文件名集合
+    const string m_default_index_file = "./binlog/BINLOG_INDEX"; //默认索引文件
+};
+
+//todo 设计同步协议---包含二进制格式+解析器
 
 #endif //MOUSEKV_BINLOG_H
