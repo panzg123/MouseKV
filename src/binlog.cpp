@@ -113,3 +113,9 @@ bool BinLog::appendSetRecord(const string &key, const string &value)
 }
 
 //todo BinlogFileList 若干个函数的实现
+
+//todo SyncStream实现
+
+//todo LogReader实现
+
+//todo LogParser实现

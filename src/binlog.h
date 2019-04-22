@@ -15,6 +15,7 @@ using namespace std;
 //单个binLog文件类
 class BinLog
 {
+public:
     struct Header
     {
         int handshake = HandShake; //这是一个魔法数
@@ -95,6 +96,84 @@ private:
     const string m_default_index_file = "./binlog/BINLOG_INDEX"; //默认索引文件
 };
 
-//todo 设计同步协议---包含二进制格式+解析器
+//同步的二进制数据流--用于slave解析二进制数据
+struct BinlogSyncStream {
+    enum Error {
+        NoError = 0,
+        InvalidFileName
+    };
+
+    enum {
+        MaxStreamSize = 32*1024*1024  //max stream size. 32M
+    };
+
+    char ch;                //+
+    int streamSize;         //stream size
+    int error;              //error
+    char errorMsg[128];     //error message
+    char srcFileName[128];  //last binlog file name
+    int lastUpdatePos;      //last update in the binlog
+    int logItemCount;       //item count
+
+    //获取二进制流中的第一个LogItem
+    BinLog::LogItem* firstLogItem(void) {
+        return (BinLog::LogItem*)(this+1);
+    }
+
+    BinLog::LogItem* nextLogItem(BinLog::LogItem* cur) {
+        return (BinLog::LogItem*)(((char*)cur)+cur->item_size);
+    }
+};
+
+//解析器 -- 主要用于master解析binlog文件
+class BinlogBufferReader
+{
+public:
+    BinlogFileList(){}
+    BinlogFileList(char* buf, int size)
+    {
+        m_buf = buf;
+        m_len = size;
+    }
+    ~BinlogBufferReader(){}
+
+    BinLog::LogItem* firstItem(void) const {
+        if (m_len == 0) {
+            return NULL;
+        }
+        return (BinLog::LogItem*)(m_buff);
+    }
+    BinLog::LogItem* nextItem(BinLog::LogItem* item) const {
+        if ((char*)item + item->item_size - m_buff >= m_len) {
+            return NULL;
+        }
+        return (BinLog::LogItem*)(((char*)item)+item->item_size);
+    }
+
+private:
+    char* m_buf = nullptr;
+    int m_len = 0;
+};
+
+//真正的解析器--读取BinLog
+//buf数据 -- header + LogItem
+class BinlogParser
+{
+public:
+    BinlogParser(void);
+    ~BinlogParser(void);
+
+    bool open(const std::string& fname);
+    BinlogBufferReader reader(void) const;
+    void close(void);
+
+private:
+    char* m_base;
+    int m_size;
+    int m_fd;
+
+    BinlogParser(const BinlogParser&);
+    BinlogParser& operator=(const BinlogParser&);
+};
 
 #endif //MOUSEKV_BINLOG_H
