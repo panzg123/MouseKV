@@ -49,7 +49,7 @@ void Logger::LogRotation()
 	}
 	this->m_file_fd= ::open(m_default_log.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0644);
 	if(this->m_file_fd == -1){
-		fprintf(stderr, "open log file %s error - %s\n", m_default_log, strerror(errno));
+		fprintf(stderr, "open log file %s error - %s\n", m_default_log.c_str(), strerror(errno));
 		return;
 	}
 	m_cur_file_size = 0;

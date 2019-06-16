@@ -89,6 +89,7 @@ bool CmdTable::AddCmd(string cmd, CmdHandler handler)
 {
     COMM_LOG(Logger::ERROR,"AddCmd, cmd[%s]\n",cmd.c_str());
 	m_map_cmd_handler[cmd] = handler;
+	return true;
 }
 
 

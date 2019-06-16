@@ -100,19 +100,59 @@ void BinLog::close()
         fclose(m_fp);
 }
 
-//TODO
+//删除一条日志
 bool BinLog::appendDelRecord(const string &key)
 {
+    int writesize = sizeof(LogItem) + key.size();
+    LogItem item;
+    item.item_size = writesize;
+    item.key_size = key.size();
+    item.value_size = 0;
+    item.type = LogItem::DEL;
 
+    size_t  succsize = fwrite(&item, sizeof(item), 1 ,m_fp);
+    succsize = fwrite(key.data(), key.size(), 1, m_fp);
+
+    m_writtenSize += writesize;
+    return true;
 }
 
-//TODO
+//插入一条日志
 bool BinLog::appendSetRecord(const string &key, const string &value)
 {
+    int writesize = sizeof(LogItem) + key.size() + value.size();
+    LogItem item;
+    item.item_size = writesize;
+    item.key_size = key.size();
+    item.value_size = value.size();
+    item.type = LogItem::SET;
 
+    size_t  succsize = fwrite(&item, sizeof(item), 1 ,m_fp);
+    succsize = fwrite(key.data(), key.size(), 1, m_fp);
+    succsize = fwrite(value.data(), value.size(), 1, m_fp);
+    m_writtenSize += writesize;
 }
 
-//todo BinlogFileList 若干个函数的实现
+int BinlogFileList::indexOfFileName(const string &fileName) const
+{
+    for ( size_t i = 0; i < m_binlogFileList.size(); ++i) {
+        if(m_binlogFileList[i] == fileName)
+            return i;
+    }
+    return -1;
+}
+
+void BinlogFileList::loadBinlogListFromIndex()
+{
+    m_binlogFileList.clear();
+    TextConfigFile::read(m_default_index_file, m_binlogFileList);
+}
+
+void BinlogFileList::saveBinlogListToIndex()
+{
+    TextConfigFile::write(m_default_index_file,m_binlogFileList);
+}
+
 
 //todo SyncStream实现
 

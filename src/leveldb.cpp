@@ -112,6 +112,7 @@ bool LevelDbCluster::setValue(const string &key, const string &value)
     if(db == NULL)
         return false;
     return db->setValue(key,value);
+    //TODO 写入binlog
 }
 
 bool LevelDbCluster::getValue(const string &key, string &value)
@@ -128,6 +129,7 @@ bool LevelDbCluster::delKey(const string &key)
     if(db == NULL)
         return false;
     return db->delKey(key);
+    //TODO 写入binlog
 }
 
 LevelDbCluster* LevelDbCluster::instance()

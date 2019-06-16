@@ -7,10 +7,44 @@
 
 #include <string>
 #include <cstdio>
-#include <comm_def.h>
 #include <vector>
+#include <fstream>
+#include "comm_def.h"
 
 using namespace std;
+
+
+class TextConfigFile
+{
+public:
+    static bool read(const std::string& fname, std::vector<std::string>& values)
+    {
+        ifstream ifs(fname.c_str());
+        if(!ifs)
+        {
+            return false;
+        }
+        string str;
+        while(getline(ifs, str))
+        {
+            values.push_back(str);
+        }
+        ifs.close();
+    }
+    static bool write(const std::string& fname, const std::vector<std::string>& values)
+    {
+        ofstream ofs;
+        ofs.open(fname.c_str(), ios::out | ios::trunc);
+        if(!ofs)
+        {
+            return false;
+        }
+        for (auto &line : values) {
+            ofs << line;
+        }
+        ofs.close();
+    }
+};
 
 //单个binLog文件类
 class BinLog
@@ -83,13 +117,10 @@ public:
         return m_binlogFileList[index];
     }
     int indexOfFileName(const string& fileName) const;
-
-    static void loadBinlogListFromIndex();
-    static void saveBinlogListToIndex();
-
-    //todo 还需要个生成binlog新文件的函数
-
-    //todo 也可以把调整log文件等功能在此实现，不需要再levelCluster中判断
+    //从日志索引文件里面加载日志文件列表
+    void loadBinlogListFromIndex();
+    //保存一个日志文件信息到索引文件中
+    void saveBinlogListToIndex();
 
 private:
     vector<string> m_binlogFileList;   //所有binlog文件名集合
@@ -129,8 +160,8 @@ struct BinlogSyncStream {
 class BinlogBufferReader
 {
 public:
-    BinlogFileList(){}
-    BinlogFileList(char* buf, int size)
+    BinlogBufferReader(){}
+    BinlogBufferReader(char* buf, int size)
     {
         m_buf = buf;
         m_len = size;
@@ -141,10 +172,10 @@ public:
         if (m_len == 0) {
             return NULL;
         }
-        return (BinLog::LogItem*)(m_buff);
+        return (BinLog::LogItem*)(m_buf);
     }
     BinLog::LogItem* nextItem(BinLog::LogItem* item) const {
-        if ((char*)item + item->item_size - m_buff >= m_len) {
+        if ((char*)item + item->item_size - m_buf >= m_len) {
             return NULL;
         }
         return (BinLog::LogItem*)(((char*)item)+item->item_size);
