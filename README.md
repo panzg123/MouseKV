@@ -3,6 +3,14 @@ oh, something cool.
 
 base from [OneValue](https://github.com/onexsoft/OneValue)
 
+
+## 图解
+
+#### LogItem
+
+![Image text](https://github.com/panzg123/MouseKV/blob/master/images/MouseKv_LogItem.png)
+
+
 ### TODO
 - [x] Log
 - [x] levelDb
