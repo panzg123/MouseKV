@@ -22,6 +22,7 @@ public:
 public:
     int m_leveldb_size = 8;
     string m_leveldb_dir = "./data/";
+    string m_binlog_dir  = "./binlog";
     int m_thread_num = 8;
     int m_svr_port = 10086;
     int m_log_level = 0;

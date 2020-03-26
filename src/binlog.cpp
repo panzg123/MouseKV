@@ -156,6 +156,8 @@ void BinlogFileList::saveBinlogListToIndex()
 
 //todo SyncStream实现
 
+
+
 //todo LogReader实现
 
 //todo LogParser实现

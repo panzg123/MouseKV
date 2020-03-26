@@ -71,6 +71,7 @@ LevelDbCluster::~LevelDbCluster()
         LevelDb* db = m_vec_dbs[i];
         delete db;
     }
+    m_curBinlog.close();
 }
 
 bool LevelDbCluster::InitCluster(int db_num,string db_dir)
@@ -90,6 +91,8 @@ bool LevelDbCluster::InitCluster(int db_num,string db_dir)
         }
         m_vec_dbs.push_back(db);
     }
+    //初始化binlog
+    m_curBinlog.open("./binlog/log");
     return true;
 }
 
@@ -111,8 +114,10 @@ bool LevelDbCluster::setValue(const string &key, const string &value)
     LevelDb *db = getLevelDbByKey(key);
     if(db == NULL)
         return false;
-    return db->setValue(key,value);
+    bool _ret =  db->setValue(key,value);
     //TODO 写入binlog
+    m_curBinlog.appendSetRecord(key,value);
+    return _ret;
 }
 
 bool LevelDbCluster::getValue(const string &key, string &value)
@@ -128,8 +133,10 @@ bool LevelDbCluster::delKey(const string &key)
     LevelDb *db = getLevelDbByKey(key);
     if(db == NULL)
         return false;
-    return db->delKey(key);
+    bool _ret =  db->delKey(key);
     //TODO 写入binlog
+    m_curBinlog.appendDelRecord(key);
+    return _ret;
 }
 
 LevelDbCluster* LevelDbCluster::instance()

@@ -166,6 +166,9 @@ bool Mouse::runMouseSvr()
     assert(ret);
 	//启动server
     HostAddress addr(config->m_svr_port);
+
+    //判断是否从节点，启动Sync线程
+
 	return Server::run(addr);
 }
 

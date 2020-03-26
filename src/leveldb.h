@@ -10,6 +10,7 @@
 #include <leveldb/db.h>
 #include <leveldb/options.h>
 #include "log.h"
+#include "binlog.h"
 using namespace std;
 
 class LevelDb
@@ -46,6 +47,7 @@ private:
     vector<LevelDb*> m_vec_dbs;
     int m_level_db_size = 8;  //默认8个levelDb
     string m_work_dir;
+    BinLog m_curBinlog;
 };
 
 

@@ -100,7 +100,7 @@ void* EventLoopThread::run(void* arg)
     thread->m_event_loop.exec();
     thread->m_is_running = true;
     return NULL;
-};
+}
 
 //===========================================================线程池=====================================================
 
