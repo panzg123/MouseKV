@@ -6,6 +6,7 @@
 #include "mouse.h"
 #include <string>
 #include <vector>
+#include "sync.h"
 using namespace std;
 
 Context* Mouse::createContextObject()
@@ -168,6 +169,11 @@ bool Mouse::runMouseSvr()
     HostAddress addr(config->m_svr_port);
 
     //判断是否从节点，启动Sync线程
+    if(!config->m_master_ip.empty() && config->m_master_port != 0)
+    {
+        SyncThread *syncThread = new SyncThread(config->m_master_ip.c_str(), config->m_master_port, this);
+        syncThread->start();
+    }
 
 	return Server::run(addr);
 }

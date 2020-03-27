@@ -25,7 +25,7 @@ class ClientPacket : public Context
 
 };
 
-
+class SyncThread;
 class Mouse: public Server
 {
 public:

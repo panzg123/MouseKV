@@ -27,6 +27,9 @@ public:
     int m_svr_port = 10086;
     int m_log_level = 0;
 
+    string m_master_ip = "";
+    int m_master_port = 0;
+
 };
 
 

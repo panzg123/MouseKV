@@ -40,6 +40,15 @@ bool Config::InitConfig(string file_path)
     m_svr_port = svr->IntAttribute("port");
     m_log_level = svr->IntAttribute("log_level");
 
+    //master-slave sync conf
+    XMLElement* master = root->FirstChildElement("master");
+    if( master != nullptr)
+    {
+        m_master_ip = master->Attribute("ip");
+        m_master_port = master->IntAttribute("port");
+        printf("master info, ip[%s] port[%d]\n", m_master_ip.c_str(), m_master_port);
+    }
+
     //打印下配置
     fprintf(stderr,"m_leveldb_size[%d], m_thread_num[%d], m_leveldb_dir[%s], m_svr_port[%d], m_log_level[%d]\n",
                 m_leveldb_size, m_thread_num, m_leveldb_dir.c_str(), m_svr_port, m_log_level);
