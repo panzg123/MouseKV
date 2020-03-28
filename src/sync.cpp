@@ -14,6 +14,13 @@ SyncThread::SyncThread(const char *master, int port, Mouse* svr)
     server = svr;
 }
 
+SyncThread::~SyncThread()
+{
+    if(m_is_running)
+        terminate();
+    if(m_net_buf != nullptr)
+        delete[] m_net_buf;
+}
 
 void SyncThread::terminate()
 {
@@ -28,7 +35,7 @@ void* SyncThread::run(void *arg)
     if(ret){
         if(thread->m_master_sync_info.size() != 2){
             COMM_LOG(Logger::ERROR, "m_master_sync_info error, size[%zu]", thread->m_master_sync_info.size());
-            return NULL;
+            return nullptr;
         }
     } else{
         thread->m_master_sync_info.clear();
@@ -42,7 +49,7 @@ void* SyncThread::run(void *arg)
     {
         COMM_LOG(Logger::ERROR,"connect failed, master_ip[%s] master_port[%d]",
                 thread->m_master_addr.ip(), thread->m_master_addr.port());
-        return NULL;
+        return nullptr;
     }
 
     //2. while循环--发送SYNC命令、接受同步数据、处理同步的数据
@@ -107,14 +114,16 @@ void* SyncThread::run(void *arg)
             {
                 case BinLog::LogItem::DEL:
                 {
-                    //TODO 写操作
+                    //删除操作
                     COMM_LOG(Logger::DEBUG, "sync del cmd, key[%s]", item->keyBuffer());
+                    dbCluster->delKey(item->keyBuffer());
                     break;
                 }
                 case BinLog::LogItem::SET:
                 {
-                    //TODO 写操作
+                    //写操作
                     COMM_LOG(Logger::DEBUG, "sync set cmd, key[%s] value[%s]", item->keyBuffer(), item->valueBuffer());
+                    dbCluster->setValue(item->keyBuffer(), item->valueBuffer());
                     break;
                 }
                 default:
@@ -141,6 +150,6 @@ void* SyncThread::run(void *arg)
 
 void SyncThread::start()
 {
-    pthread_create(&m_thread_id,NULL,run, this);
+    pthread_create(&m_thread_id,nullptr,run, this);
 }
 

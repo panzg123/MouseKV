@@ -27,7 +27,7 @@ void Event::active(int timeout)
         val.tv_usec = (timeout - val.tv_sec * 1000) * 1000;
         event_add(&m_event, &val);
     } else {
-        event_add(&m_event, NULL);
+        event_add(&m_event, nullptr);
     }
 }
 
@@ -62,7 +62,7 @@ void EventLoop::exec(void)
 void EventLoop::exit(int timeout)
 {
     if (m_event_loop) {
-        timeval* p = NULL;
+        timeval* p = nullptr;
         timeval val;
         if (timeout != -1) {
             val.tv_sec = (timeout / 1000);
@@ -79,7 +79,7 @@ void EventLoop::exit(int timeout)
 //=========================================================线程========================================================
 void EventLoopThread::start(void)
 {
-    pthread_create(&m_thread_id,NULL,run, this);
+    pthread_create(&m_thread_id,nullptr,run, this);
 }
 
 void emptyCallBack(evutil_socket_t, short, void*)
@@ -99,7 +99,7 @@ void* EventLoopThread::run(void* arg)
     thread->m_timeout.active(60000);
     thread->m_event_loop.exec();
     thread->m_is_running = true;
-    return NULL;
+    return nullptr;
 }
 
 //===========================================================线程池=====================================================

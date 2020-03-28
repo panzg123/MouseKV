@@ -25,10 +25,10 @@ public:
 	};
 		
     Context(void) {
-        server = NULL;
+        server = nullptr;
         sendBytes = 0;
         recvBytes = 0;
-        eventLoop = NULL;
+        eventLoop = nullptr;
     }
 
     virtual ~Context(void) {}

@@ -80,7 +80,7 @@ int Socket::setOption(int level, int name, char *val, socklen_t vallen)
 bool Socket::setNonBlocking(void)
 {
     int flags;
-    if ((flags = fcntl(m_socket, F_GETFL, NULL)) < 0) {
+    if ((flags = fcntl(m_socket, F_GETFL, nullptr)) < 0) {
         return false;
     }
     if (fcntl(m_socket, F_SETFL, flags | O_NONBLOCK) == -1) {

@@ -6,6 +6,7 @@
 #include <sstream>
 #include <functional>
 #include <cassert>
+#include <utility>
 
 LevelDb::LevelDb()
 {
@@ -19,7 +20,7 @@ LevelDb::~LevelDb()
 
 void LevelDb::InitDb(const string& db_name)
 {
-    m_db = NULL;
+    m_db = nullptr;
     m_options.create_if_missing = true;
     m_db_name = db_name;
 }
@@ -77,7 +78,7 @@ LevelDbCluster::~LevelDbCluster()
 bool LevelDbCluster::InitCluster(int db_num,string db_dir)
 {
     m_level_db_size = db_num;
-    m_work_dir = db_dir;  //TODO 需要检查data是否存在
+    m_work_dir = std::move(db_dir);  //TODO 需要检查data是否存在
     for (int i = 0; i < m_level_db_size; ++i)
     {
         LevelDb *db = new LevelDb;
@@ -91,8 +92,25 @@ bool LevelDbCluster::InitCluster(int db_num,string db_dir)
         }
         m_vec_dbs.push_back(db);
     }
-    //初始化binlog
-    m_curBinlog.open("./binlog/log");
+
+    //初始化BinLogFileList
+    m_binlogFileList.loadBinlogListFromIndex();
+
+    //需要处理binlog目录不存在的问题--从binlogfile里面打开最后一个文件
+    string last_binlog_file;
+    if(!m_binlogFileList.isEmpty())
+    {
+        last_binlog_file = m_binlogFileList.fileName(m_binlogFileList.fileCount() - 1);
+    }
+    else
+    {
+        //创建一个全新的BinLog日志文件
+        last_binlog_file = buildRandomBinlogFileBaseName();
+        m_binlogFileList.appendNewBinlogFile(last_binlog_file);
+        m_binlogFileList.saveBinlogListToIndex();
+    }
+    m_curBinlog.open(getBinlogFullPath(last_binlog_file));
+    COMM_LOG(Logger::DEBUG, "cur binlog file[%s]", last_binlog_file.c_str());
     return true;
 }
 
@@ -106,24 +124,27 @@ LevelDb* LevelDbCluster::getLevelDbByKey(const string &key)
     {
         return m_vec_dbs[db_idx];
     }
-    return NULL;
+    return nullptr;
 }
 
 bool LevelDbCluster::setValue(const string &key, const string &value)
 {
     LevelDb *db = getLevelDbByKey(key);
-    if(db == NULL)
+    if(db == nullptr)
         return false;
     bool _ret =  db->setValue(key,value);
-    //TODO 写入binlog
-    m_curBinlog.appendSetRecord(key,value);
+    if(_ret)
+    {
+        m_curBinlog.appendSetRecord(key,value);
+        adjustCurrentBinlogFile();
+    }
     return _ret;
 }
 
 bool LevelDbCluster::getValue(const string &key, string &value)
 {
     LevelDb *db = getLevelDbByKey(key);
-    if(db == NULL)
+    if(db == nullptr)
         return false;
     return db->getValue(key,value);
 }
@@ -131,12 +152,42 @@ bool LevelDbCluster::getValue(const string &key, string &value)
 bool LevelDbCluster::delKey(const string &key)
 {
     LevelDb *db = getLevelDbByKey(key);
-    if(db == NULL)
+    if(db == nullptr)
         return false;
     bool _ret =  db->delKey(key);
-    //TODO 写入binlog
-    m_curBinlog.appendDelRecord(key);
+    if(_ret)
+    {
+        m_curBinlog.appendDelRecord(key);
+        adjustCurrentBinlogFile();
+    }
     return _ret;
+}
+
+void LevelDbCluster::adjustCurrentBinlogFile()
+{
+    if (m_curBinlog.writtenSize() >= 64*1024*1024) //Binlog日志最大64M
+    {
+        m_curBinlog.close();
+        std::string newFileBaseName = buildRandomBinlogFileBaseName();
+        std::string fullPath =   getBinlogFullPath(newFileBaseName);
+        if (m_curBinlog.open(fullPath)) {
+            m_binlogFileList.appendNewBinlogFile(newFileBaseName);
+            m_binlogFileList.saveBinlogListToIndex();
+        }
+        COMM_LOG(Logger::DEBUG, "adjust binlog file, newFileBaseName[%s]", newFileBaseName.c_str());
+    }
+}
+
+std::string LevelDbCluster::buildRandomBinlogFileBaseName() const
+{
+    time_t t = time(nullptr);
+    tm* lt = localtime(&t);
+
+    char buff[1024];
+    sprintf(buff, "%d%02d%02d_%02d%02d%02d-%d-bin",
+            lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday,
+            lt->tm_hour, lt->tm_min, lt->tm_sec, rand() % 100000);
+    return buff;
 }
 
 LevelDbCluster* LevelDbCluster::instance()

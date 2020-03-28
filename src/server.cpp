@@ -82,11 +82,11 @@ void Server::onAcceptHandler(evutil_socket_t sock, short, void * arg)
 
 	Server* server = (Server*)arg;
 	Context* c = server->createContextObject();
-    if (c != NULL) {
+    if (c != nullptr) {
         c->clientSocket = _sock;
         c->clientAddress = HostAddress(clientAddr);
         c->server = server;
-        if (c->eventLoop == NULL) {
+        if (c->eventLoop == nullptr) {
             c->eventLoop = server->getEventLoop();
         }
         server->clientConnected(c);

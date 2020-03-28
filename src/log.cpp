@@ -33,7 +33,7 @@ void Logger::LogRotation()
 	time_t time;
 	struct timeval tv;
 	struct tm *tm, tm_tmp;
-	gettimeofday(&tv, NULL);
+	gettimeofday(&tv, nullptr);
 	time = tv.tv_sec;
 	tm = localtime_r(&time, &tm_tmp);
 	sprintf(newpath, "%s.%04d%02d%02d-%02d%02d%02d",

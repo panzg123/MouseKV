@@ -4,6 +4,7 @@
 
 #include "binlog.h"
 #include "log.h"
+#include <sys/mman.h>
 
 BinLog::BinLog()
 {
@@ -154,10 +155,88 @@ void BinlogFileList::saveBinlogListToIndex()
 }
 
 
-//todo SyncStream实现
+BinlogParser::BinlogParser()
+{
+    m_base = nullptr;
+    m_size = 0;
+    m_fd = -1;
+}
+
+BinlogParser::~BinlogParser()
+{
+    close();
+}
 
 
+bool BinlogParser::open(const std::string &fname)
+{
+    close();
+    //先获取下文件大小
+    struct stat sbuf;
+    int size;
+    if(::stat(fname.c_str(), &sbuf) != 0)
+    {
+        COMM_LOG(Logger::ERROR, "BinlogParser::parse: stat(%s): %s", fname.c_str(), strerror(errno));
+        return false;
+    }
+    else
+    {
+        size = sbuf.st_size;
+    }
+    int fd = ::open(fname.c_str(), O_RDONLY);
+    if (fd < 0)
+    {
+        COMM_LOG(Logger::ERROR, "BinlogParser::parse: open: %s", strerror(errno));
+        return false;
+    }
 
-//todo LogReader实现
+    BinLog::Header header;
+    if (::read(fd, (char*)&header, sizeof(header)) != sizeof(header))
+    {
+        ::close(fd);
+        COMM_LOG(Logger::ERROR, "BinlogParser::parse: read: %s", strerror(errno));
+        return false;
+    }
 
-//todo LogParser实现
+    if (!header.IsHeaderValid())
+    {
+        ::close(fd);
+        COMM_LOG(Logger::ERROR, "BinlogParser::parse: file invalid");
+        return false;
+    }
+
+    void* base = ::mmap(nullptr, size, PROT_READ, MAP_SHARED, fd, 0);
+    if (base == MAP_FAILED)
+    {
+        ::close(fd);
+        COMM_LOG(Logger::ERROR, "BinlogParser::parse: mmap: %s", strerror(errno));
+        return false;
+    }
+    m_base = (char*)base;
+    m_size = size;
+    m_fd = fd;
+
+}
+
+void BinlogParser::close()
+{
+    if(m_base != nullptr)
+    {
+        munmap(m_base, m_size);
+        m_base = nullptr;
+        m_size = 0;
+    }
+
+    if ( m_fd != -1)
+    {
+        ::close(m_fd);
+        m_fd = -1;
+    }
+}
+
+BinlogBufferReader BinlogParser::reader() const
+{
+    char* buff = m_base + sizeof(BinLog::Header);
+    int size = m_size - sizeof(BinLog::Header);
+    return BinlogBufferReader(buff, size);
+}

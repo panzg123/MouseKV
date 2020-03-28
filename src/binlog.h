@@ -170,13 +170,13 @@ public:
 
     BinLog::LogItem* firstItem(void) const {
         if (m_len == 0) {
-            return NULL;
+            return nullptr;
         }
         return (BinLog::LogItem*)(m_buf);
     }
     BinLog::LogItem* nextItem(BinLog::LogItem* item) const {
         if ((char*)item + item->item_size - m_buf >= m_len) {
-            return NULL;
+            return nullptr;
         }
         return (BinLog::LogItem*)(((char*)item)+item->item_size);
     }
@@ -191,12 +191,12 @@ private:
 class BinlogParser
 {
 public:
-    BinlogParser(void);
-    ~BinlogParser(void);
+    BinlogParser();
+    ~BinlogParser();
 
     bool open(const std::string& fname);
-    BinlogBufferReader reader(void) const;
-    void close(void);
+    BinlogBufferReader reader() const;
+    void close();
 
 private:
     char* m_base;

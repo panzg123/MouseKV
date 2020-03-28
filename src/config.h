@@ -21,17 +21,14 @@ public:
 
 public:
     int m_leveldb_size = 8;
-    string m_leveldb_dir = "./data/";
-    string m_binlog_dir  = "./binlog";
-    int m_thread_num = 8;
-    int m_svr_port = 10086;
-    int m_log_level = 0;
+    string m_leveldb_dir = "./data/";  //level目录
+    string m_binlog_dir  = "./binlog"; //日志目录
+    int m_thread_num = 8;    //work线程个数
+    int m_svr_port = 10086;  //svr端口
+    int m_log_level = 0;     //日志级别
 
-    string m_master_ip = "";
-    int m_master_port = 0;
-
+    string m_master_ip = ""; //从节点时使用-master ip
+    int m_master_port = 0;   //从节点时使用-master port
 };
-
-
 
 #endif //MOUSEKV_CONFIG_H

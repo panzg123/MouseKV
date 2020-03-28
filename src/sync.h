@@ -18,13 +18,7 @@ class SyncThread
 {
 public:
     SyncThread(const char* master, int port, Mouse* svr);
-    ~ SyncThread(void)
-    {
-        if(m_is_running)
-            terminate();
-        if(m_net_buf != nullptr)
-            delete[] m_net_buf;
-    }
+    ~ SyncThread();
     void start(void);
     static void* run(void* arg);
     void terminate(void);

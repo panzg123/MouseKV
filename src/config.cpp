@@ -21,7 +21,7 @@ bool Config::InitConfig(string file_path)
     assert(ret==0);
 
     XMLElement* root = doc.FirstChildElement("config");
-    if (root == NULL)
+    if (root == nullptr)
     {
         fprintf(stderr, "InitConfig, Not find the root node[config]\n");
         return false;
@@ -29,7 +29,7 @@ bool Config::InitConfig(string file_path)
 
     //svr
     XMLElement* svr =  root->FirstChildElement("svr");
-    if(svr == NULL)
+    if(svr == nullptr)
     {
         fprintf(stderr,"InitConfig, find svr element error\n");
         return false;
