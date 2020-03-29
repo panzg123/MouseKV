@@ -40,7 +40,7 @@ public:
             return false;
         }
         for (auto &line : values) {
-            ofs << line;
+            ofs << line << endl;
         }
         ofs.close();
     }
