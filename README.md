@@ -29,8 +29,8 @@ base from [OneValue](https://github.com/onexsoft/OneValue)
 ## TODO
 - [x] Log
 - [x] levelDb
-- [ ] binlog
-- [ ] master-slave
+- [x] binlog
+- [x] master-slave
 - [ ] restful api
 - [x] multi work process
 - [ ] support cas
