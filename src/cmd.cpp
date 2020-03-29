@@ -3,6 +3,7 @@
 #include "log.h"
 #include <sstream>
 #include <string>
+#include "DbCopyThread.h"
 
 using namespace std;
 
@@ -130,11 +131,12 @@ void MouseSyncToSlaveCmdHandle(Context* c)
         }
         else
         {
+            COMM_LOG(Logger::DEBUG, "before for loop, binlog_index[%d] binlog_count[%d]", binlog_index, binlog_list->fileCount());
             for (int i = binlog_index; i < binlog_list->fileCount(); ++i)
             {
                 string binlog_file_name = binlog_list->fileName(i);
                 BinlogParser stParse;
-                bool ret = stParse.open(binlog_file_name);
+                bool ret = stParse.open(dbCluster->getBinlogFullPath(binlog_file_name));
                 if(!ret)
                 {
                     err = BinlogSyncStream::InvalidFileName;
@@ -147,8 +149,12 @@ void MouseSyncToSlaveCmdHandle(Context* c)
                     bool need_break = false; //标记是否break，stream超大
                     BinlogBufferReader stReader = stParse.reader();
                     BinLog::LogItem *log_item = stReader.firstItem();
-                    for(; log_item != nullptr; log_item = stReader.nextItem())
+                    COMM_LOG(Logger::DEBUG,"binlog_filename[%s] binlog_now_pos[%d] read_file_pos[%d]",
+                            binlog_file_name.c_str(), binlog_now_pos, read_file_pos);
+                    for(; log_item != nullptr; log_item = stReader.nextItem(log_item))
                     {
+                        COMM_LOG(Logger::DEBUG,"find log_item, binlog_now_pos[%d] read_file_pos[%d], key[%s]",
+                                binlog_now_pos, read_file_pos, log_item->keyBuffer());
                         if(binlog_now_pos >= read_file_pos)
                         {
                             reply.append((char*)log_item, log_item->item_size);
@@ -214,7 +220,7 @@ void MouseSyncFromCmdHandle(Context* c)
     {
         sock.close();
         c->sendBuff.appendFormatString("-ERR Can't connect to host '%s:%d'\r\n", src_ip.c_str(), src_port);
-        c->setFinishedState(ClientPacket::RequestFinished);
+        c->setFinishedState(Context::RequestFinished);
         return;
     }
 
@@ -226,7 +232,7 @@ void MouseSyncFromCmdHandle(Context* c)
     if (sock.send(sendbuf, strlen(sendbuf)) <= 0) {
         sock.close();
         c->sendBuff.append("-ERR Request the host failed\r\n");
-        c->setFinishedState(ClientPacket::RequestFinished);
+        c->setFinishedState(Context::RequestFinished);
         return;
     }
 
@@ -239,21 +245,39 @@ void MouseSyncFromCmdHandle(Context* c)
         c->sendBuff.append("-ERR Copy failed\r\n");
     }
     sock.close();
-    c->setFinishedState(ClientPacket::RequestFinished);
+    c->setFinishedState(Context::RequestFinished);
 }
 
 //__COPY port,  A-->B 该处是A节点的handle
 void MouseCopyCmdHandle(Context* c)
 {
+    if(c->vec_req_params.size() != 2)
+    {
+        c->setFinishedState(Context::WrongNumberOfArguments);
+        return;
+    }
+    int dst_port = std::stoi(c->vec_req_params[1]); //目标端口
+    Mouse* mouse_svr = (Mouse*)c->server;
+    string dst_ip = c->clientAddress.ip();
     //TODO 单独启动一个DBCOPY线程
-
+    DbCopyThread *copyThread = new DbCopyThread(mouse_svr, dst_ip, dst_port);//TODO 这里是否有内存泄漏
+    int ret = copyThread->start();
+    if(!ret)
+    {
+        c->sendBuff.append("1");
+    }
+    else
+    {
+        c->sendBuff.append("0");
+    }
+    c->setFinishedState(Context::RequestFinished);
 }
 
 
 //下面是CmdTable的实现
 bool CmdTable::AddCmd(string cmd, CmdHandler handler)
 {
-    COMM_LOG(Logger::ERROR,"AddCmd, cmd[%s]\n",cmd.c_str());
+    COMM_LOG(Logger::ERROR,"AddCmd, cmd[%s]",cmd.c_str());
 	m_map_cmd_handler[cmd] = handler;
 	return true;
 }
@@ -261,7 +285,7 @@ bool CmdTable::AddCmd(string cmd, CmdHandler handler)
 
 bool CmdTable::GetCmdHandler(const string & cmd, CmdHandler& handler)
 {
-	COMM_LOG(Logger::DEBUG,"GetCmdHandler, cmd[%s]\n",cmd.c_str());
+	COMM_LOG(Logger::DEBUG,"GetCmdHandler, cmd[%s]",cmd.c_str());
 	//这里统一转换为大写命令字
     string str_cmd = cmd;
     strToUpper(str_cmd);

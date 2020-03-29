@@ -165,6 +165,7 @@ bool LevelDbCluster::delKey(const string &key)
 
 void LevelDbCluster::adjustCurrentBinlogFile()
 {
+    COMM_LOG(Logger::DEBUG,"adjustCurrentBinlogFile begin, m_writenSize[%d]", m_curBinlog.writtenSize());
     if (m_curBinlog.writtenSize() >= 64*1024*1024) //Binlog日志最大64M
     {
         m_curBinlog.close();

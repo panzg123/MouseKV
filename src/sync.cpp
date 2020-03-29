@@ -29,12 +29,13 @@ void SyncThread::terminate()
 
 void* SyncThread::run(void *arg)
 {
+    COMM_LOG(Logger::DEBUG, "Sync run begin...");
     SyncThread* thread = (SyncThread*)arg;
     //0. 读取索引文件记录的位置信息 -- 如果没有读取，则初始化为默认值
     bool ret = TextConfigFile::read(thread->m_binlog_index_file, thread->m_master_sync_info);
     if(ret){
+        COMM_LOG(Logger::ERROR, "m_master_sync_info error, size[%zu]", thread->m_master_sync_info.size());
         if(thread->m_master_sync_info.size() != 2){
-            COMM_LOG(Logger::ERROR, "m_master_sync_info error, size[%zu]", thread->m_master_sync_info.size());
             return nullptr;
         }
     } else{
@@ -42,6 +43,8 @@ void* SyncThread::run(void *arg)
         thread->m_master_sync_info.emplace_back(" ");
         thread->m_master_sync_info.emplace_back("-1");
     }
+    COMM_LOG(Logger::DEBUG,"sync master info, last_file[%s] last_pos[%s]",
+            thread->m_master_sync_info[0].c_str(), thread->m_master_sync_info[1].c_str());
 
     //1.创建tcp链接
     thread->m_master_sock = Socket::CreateSocket();
@@ -91,10 +94,12 @@ void* SyncThread::run(void *arg)
             continue;
         }
         //循环接收主体部分LogItem信息
-        int bodyLen = 0;
+        int bodyLen = sizeof(recv_buf);
         int bufLen = 32*1024*1024;
+        memcpy(thread->m_net_buf, recv_buf, bodyLen);  //先把头部copy过来--不然有bug
         while(bodyLen != pStream->streamSize)
         {
+            COMM_LOG(Logger::DEBUG, "while sync socket block recv, now BodyLen[%d]", bodyLen);
             int _len = thread->m_master_sock.recv( thread->m_net_buf + bodyLen, bufLen - bodyLen );
             if(_len <= 0)
             {
@@ -104,8 +109,11 @@ void* SyncThread::run(void *arg)
             bodyLen += _len;
         }
 
+        COMM_LOG(Logger::DEBUG, "had recv full stream, bodyLen[%d]", bodyLen);
+
         //开始处理logitem
         int i = 0;
+        pStream = (BinlogSyncStream*)thread->m_net_buf;
         for (BinLog::LogItem* item = pStream->firstLogItem();
              i < pStream->logItemCount; item = pStream->nextLogItem(item), ++i)
         {
@@ -115,15 +123,18 @@ void* SyncThread::run(void *arg)
                 case BinLog::LogItem::DEL:
                 {
                     //删除操作
-                    COMM_LOG(Logger::DEBUG, "sync del cmd, key[%s]", item->keyBuffer());
-                    dbCluster->delKey(item->keyBuffer());
+                    string key(item->keyBuffer(), item->key_size);
+                    COMM_LOG(Logger::DEBUG, "sync del cmd, key[%s]", key.c_str());
+                    dbCluster->delKey(key);
                     break;
                 }
                 case BinLog::LogItem::SET:
                 {
                     //写操作
-                    COMM_LOG(Logger::DEBUG, "sync set cmd, key[%s] value[%s]", item->keyBuffer(), item->valueBuffer());
-                    dbCluster->setValue(item->keyBuffer(), item->valueBuffer());
+                    string key(item->keyBuffer(), item->key_size);
+                    string value(item->valueBuffer(), item->value_size);
+                    COMM_LOG(Logger::DEBUG, "sync set cmd, key[%s] value[%s]", key.c_str(), value.c_str());
+                    dbCluster->setValue(key, value);
                     break;
                 }
                 default:
@@ -151,5 +162,6 @@ void* SyncThread::run(void *arg)
 void SyncThread::start()
 {
     pthread_create(&m_thread_id,nullptr,run, this);
+    m_is_running = true;
 }
 

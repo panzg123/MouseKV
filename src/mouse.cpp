@@ -35,7 +35,7 @@ void Mouse::clientConnected(Context *c)
 //解析协议，判断收发包是否完整
 Mouse::ReadStatus Mouse::readingRequest(Context *c)
 {
-	COMM_LOG(Logger::DEBUG, "readingRequest begin\nreq:%s\nreq len[%d]\n",c->recvBuff.data(),c->recvBuff.size());
+	COMM_LOG(Logger::DEBUG, "readingRequest begin\nreq:%s\nreq len[%d]",c->recvBuff.data(),c->recvBuff.size());
     //解析Redis协议
     int ret = 0;
     int parar_num = 0; //请求参数个数
@@ -87,11 +87,11 @@ Mouse::ReadStatus Mouse::readingRequest(Context *c)
 //收到完整包后的业务逻辑，回调命令对应的处理函数
 void Mouse::readRequestFinished(Context *c)
 {
-	COMM_LOG(Logger::DEBUG,"readRequestFinished begin\n");
+	COMM_LOG(Logger::DEBUG,"readRequestFinished begin");
     //先拿到cmd
     if(c->vec_req_params.size() < 2)
 	{
-	   COMM_LOG(Logger::ERROR,"readRequestFinished not find cmd\n");
+	   COMM_LOG(Logger::ERROR,"readRequestFinished not find cmd");
 		c->setFinishedState(Context::ProtoNotSupport);
 	    return;
     }
@@ -100,7 +100,7 @@ void Mouse::readRequestFinished(Context *c)
 	bool find_ret = cmd_table->GetCmdHandler(cmd,handler);
 	if(!find_ret)
 	{	
-		COMM_LOG(Logger::ERROR,"readRequestFinished not find cmd\n");
+		COMM_LOG(Logger::ERROR,"readRequestFinished not find cmd");
 		c->setFinishedState(Context::ProtoNotSupport);
 	    return;
 	}
@@ -110,7 +110,7 @@ void Mouse::readRequestFinished(Context *c)
 
 void Mouse::writeReply(Context *c)
 {
-	COMM_LOG(Logger::DEBUG,"writeReply begin\n");
+	COMM_LOG(Logger::DEBUG,"writeReply begin");
     return Server::writeReply(c);
 }
 

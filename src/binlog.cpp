@@ -20,7 +20,7 @@ BinLog::~BinLog()
 
 bool BinLog::open(const std::string &file_name)
 {
-    close();
+    close(); //之前的老的文件close -- 然后此处再close会core dump -- double free or corruption
 
     //打开文件
     FILE* fp = fopen(file_name.c_str(),"a+");
@@ -97,8 +97,12 @@ void BinLog::sync()
 
 void BinLog::close()
 {
+    COMM_LOG(Logger::DEBUG,"close file");
     if(m_fp)
+    {
         fclose(m_fp);
+        m_fp = nullptr;
+    }
 }
 
 //删除一条日志
@@ -115,12 +119,14 @@ bool BinLog::appendDelRecord(const string &key)
     succsize = fwrite(key.data(), key.size(), 1, m_fp);
 
     m_writtenSize += writesize;
+    sync();
     return true;
 }
 
 //插入一条日志
 bool BinLog::appendSetRecord(const string &key, const string &value)
 {
+    COMM_LOG(Logger::DEBUG, "appendSetRecord begin, key[%s] value[%s] m_writtenSize[%d]", key.c_str(), value.c_str(), m_writtenSize);
     int writesize = sizeof(LogItem) + key.size() + value.size();
     LogItem item;
     item.item_size = writesize;
@@ -129,9 +135,15 @@ bool BinLog::appendSetRecord(const string &key, const string &value)
     item.type = LogItem::SET;
 
     size_t  succsize = fwrite(&item, sizeof(item), 1 ,m_fp);
+    COMM_LOG(Logger::DEBUG,"write item, ret[%d]", succsize);
     succsize = fwrite(key.data(), key.size(), 1, m_fp);
+    COMM_LOG(Logger::DEBUG,"write item, ret[%d]", succsize);
     succsize = fwrite(value.data(), value.size(), 1, m_fp);
+    COMM_LOG(Logger::DEBUG,"write item, ret[%d]", succsize);
     m_writtenSize += writesize;
+    COMM_LOG(Logger::DEBUG,"write item, m_writtenSize[%d]", m_writtenSize);
+    sync();
+    return true;
 }
 
 int BinlogFileList::indexOfFileName(const string &fileName) const
@@ -215,7 +227,7 @@ bool BinlogParser::open(const std::string &fname)
     m_base = (char*)base;
     m_size = size;
     m_fd = fd;
-
+    return true;
 }
 
 void BinlogParser::close()

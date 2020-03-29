@@ -106,7 +106,7 @@ void* EventLoopThread::run(void* arg)
 
 bool EventLoopThreadPool::initThreadPool(int thread_num)
 {
-    fprintf(stderr,"EventLoopThreadPool::initThreadPool begin");
+    fprintf(stderr,"EventLoopThreadPool::initThreadPool begin\n");
     m_default_thread_num = thread_num;
     for (int i = 0; i < m_default_thread_num; ++i)
     {
