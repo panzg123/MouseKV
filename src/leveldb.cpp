@@ -60,6 +60,11 @@ bool LevelDb::delKey(const string& key)
     return status.ok();
 }
 
+leveldb::Iterator* LevelDb::getIterator()
+{
+    return  m_db->NewIterator(leveldb::ReadOptions());
+}
+
 
 //-------------------------------------------------leveldbCluster-------------------------------------------------------
 LevelDbCluster::LevelDbCluster()

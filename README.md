@@ -22,6 +22,7 @@ base from [OneValue](https://github.com/onexsoft/OneValue)
 - `EventLoopThreadPool`：线程池，`Mouse`监听到客户端连接后，将fd注册到某个thread的`event_loop`中，创建`Context`，监听client读写事件
 - `Context`：`redis-cli`的上下文信息，包含`server`指针、`io buf`、`event_loop`指针
 - `SyncThread`：从节点用于从主节点同步数据的线程
+- `DbCopyThread`: 用于节点A拷贝数据给节点B，遍历整个`LevelDbCluster`
 
 #### BinLog机制
 

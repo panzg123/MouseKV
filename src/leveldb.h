@@ -23,6 +23,7 @@ public:
     bool delKey(const string& key);
     void InitDb(const string& db_name);
     bool openDb();
+    leveldb::Iterator* getIterator();
 
 private:
     leveldb::DB * m_db;
@@ -51,9 +52,12 @@ public:
         return ("./binlog/" + file_name);
     }
     BinlogFileList* binlogFileList(void) { return &m_binlogFileList; }
+    int databaseCount(void) const { return m_vec_dbs.size(); }
+    LevelDb* database(int index) const { return m_vec_dbs[index]; }
 
 private:
     vector<LevelDb*> m_vec_dbs;
+    //TODO 这里有个点，db_size不能随意调整，否则引起has-key跳变
     int m_level_db_size = 8;  //默认8个levelDb
     string m_work_dir;
     BinLog m_curBinlog;              //当前BinLog日志文件
